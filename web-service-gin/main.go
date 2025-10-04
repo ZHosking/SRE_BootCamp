@@ -25,9 +25,10 @@ func main() {
 
 	router := gin.Default()
 	router.GET("/students", getStudents)
+	router.GET("/students/:id", getStudentByID)
 	router.POST("/students", postStudents)
 
-	router.Run("localhost:8080")
+	router.Run(":8080")
 
 }
 
@@ -50,5 +51,22 @@ func postStudents(c *gin.Context) {
 
 	students = append(students, newStudent)
 	c.IndentedJSON(http.StatusCreated, newStudent)
+
+}
+
+// getStudentByID located the student whose ID value matches the ID
+// parameter sent by the client, then returns that student as a response
+func getStudentByID(c *gin.Context) {
+
+	id := c.Param("id")
+
+	// Loop over list of students to find student that ID value matches parameter
+	for _, a := range students {
+		if a.ID == id {
+			c.IndentedJSON(http.StatusOK, a)
+			return
+		}
+	}
+	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Student not found"})
 
 }
