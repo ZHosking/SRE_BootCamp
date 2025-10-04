@@ -27,6 +27,7 @@ func main() {
 	router.GET("/students", getStudents)
 	router.GET("/students/:id", getStudentByID)
 	router.POST("/students", postStudents)
+	router.PATCH("/students/:id", updateStudent)
 
 	router.Run(":8080")
 
@@ -68,5 +69,37 @@ func getStudentByID(c *gin.Context) {
 		}
 	}
 	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Student not found"})
+
+}
+
+// Function to update existing student fields using PATCH API request
+func updateStudent(c *gin.Context) {
+
+	id := c.Param("id")
+
+	var fieldToBeUpdated student
+	if err := c.BindJSON(&fieldToBeUpdated); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+		return
+	}
+
+	for x, y := range students {
+		if y.ID == id {
+			if fieldToBeUpdated.Age != "" {
+				students[x].Age = fieldToBeUpdated.Age
+			}
+			if fieldToBeUpdated.Name != "" {
+				students[x].Name = fieldToBeUpdated.Name
+			}
+			if fieldToBeUpdated.ID != "" {
+				students[x].ID = fieldToBeUpdated.ID
+			}
+
+			c.JSON(http.StatusOK, students[x])
+			return
+		}
+	}
+
+	c.JSON(http.StatusNotFound, gin.H{"message": "Student not found"})
 
 }
