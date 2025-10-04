@@ -28,6 +28,7 @@ func main() {
 	router.GET("/students/:id", getStudentByID)
 	router.POST("/students", postStudents)
 	router.PATCH("/students/:id", updateStudent)
+	router.DELETE("/students/:id", deleteStudent)
 
 	router.Run(":8080")
 
@@ -101,5 +102,20 @@ func updateStudent(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusNotFound, gin.H{"message": "Student not found"})
+
+}
+
+func deleteStudent(c *gin.Context) {
+
+	id := c.Param("id")
+
+	for x, y := range students {
+		if y.ID == id {
+			students = append(students[:x], students[x+1:]...)
+			c.JSON(http.StatusOK, gin.H{"message": "Student deleted"})
+			return
+		}
+	}
+	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Student not found"})
 
 }
