@@ -8,9 +8,15 @@ import (
 	"github.com/ZHosking/SREBootcamp/web-service-gin/handlers"
 	"github.com/ZHosking/SREBootcamp/web-service-gin/models"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found, using system env variables")
+	}
 
 	router := gin.Default()
 
