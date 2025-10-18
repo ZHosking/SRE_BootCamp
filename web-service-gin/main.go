@@ -1,121 +1,37 @@
 package main
 
 import (
-	"net/http"
-
+	"github.com/ZHosking/SREBootcamp/web-service-gin/handlers"
+	"github.com/ZHosking/SREBootcamp/web-service-gin/models"
 	"github.com/gin-gonic/gin"
 )
-
-// struct for data for each student
-type student struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-	Age  string `json:"age"`
-}
-
-// students slice to seed student data
-var students = []student{
-
-	{ID: "1", Name: "John Smith", Age: "21"},
-	{ID: "2", Name: "Nathan Todd", Age: "19"},
-	{ID: "3", Name: "Adam James", Age: "32"},
-}
 
 func main() {
 
 	router := gin.Default()
-	router.GET("/students", getStudents)
-	router.GET("/students/:id", getStudentByID)
-	router.POST("/students", postStudents)
-	router.PATCH("/students/:id", updateStudent)
-	router.DELETE("/students/:id", deleteStudent)
+
+	db, err := models.InitDB("students.db")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	// routes
+	router.GET("/students", handlers.GetStudentsHandler(db))
+	router.GET("/students/:id", handlers.GetStudentByIDHandler(db))
+	router.POST("/students", handlers.AddStudentHandler(db))
+	router.PATCH("/students/:id", handlers.UpdateStudentHandler(db))
+	router.DELETE("/students/:id", handlers.DeleteStudentHandler(db))
+
+	//healthcheck call
+	router.GET("/healthcheck", func(c *gin.Context) {
+		if err := db.Ping(); err != nil {
+			c.JSON(503, gin.H{"status": "unhealthy"})
+			return
+		}
+		c.JSON(200, gin.H{"status": "healthy"})
+	})
 
 	router.Run(":8080")
-
-}
-
-// getStudents responds with list of students as JSON
-func getStudents(c *gin.Context) {
-
-	c.IndentedJSON(http.StatusOK, students)
-
-}
-
-// postStudents adds a studen from JSON received in the request
-func postStudents(c *gin.Context) {
-
-	var newStudent student
-
-	// Call BindJSON to bind the received JSON to newStudent Var
-	if err := c.BindJSON(&newStudent); err != nil {
-		return
-	}
-
-	students = append(students, newStudent)
-	c.IndentedJSON(http.StatusCreated, newStudent)
-
-}
-
-// getStudentByID located the student whose ID value matches the ID
-// parameter sent by the client, then returns that student as a response
-func getStudentByID(c *gin.Context) {
-
-	id := c.Param("id")
-
-	// Loop over list of students to find student that ID value matches parameter
-	for _, a := range students {
-		if a.ID == id {
-			c.IndentedJSON(http.StatusOK, a)
-			return
-		}
-	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Student not found"})
-
-}
-
-// Function to update existing student fields using PATCH API request
-func updateStudent(c *gin.Context) {
-
-	id := c.Param("id")
-
-	var fieldToBeUpdated student
-	if err := c.BindJSON(&fieldToBeUpdated); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
-		return
-	}
-
-	for x, y := range students {
-		if y.ID == id {
-			if fieldToBeUpdated.Age != "" {
-				students[x].Age = fieldToBeUpdated.Age
-			}
-			if fieldToBeUpdated.Name != "" {
-				students[x].Name = fieldToBeUpdated.Name
-			}
-			if fieldToBeUpdated.ID != "" {
-				students[x].ID = fieldToBeUpdated.ID
-			}
-
-			c.JSON(http.StatusOK, students[x])
-			return
-		}
-	}
-
-	c.JSON(http.StatusNotFound, gin.H{"message": "Student not found"})
-
-}
-
-func deleteStudent(c *gin.Context) {
-
-	id := c.Param("id")
-
-	for x, y := range students {
-		if y.ID == id {
-			students = append(students[:x], students[x+1:]...)
-			c.JSON(http.StatusOK, gin.H{"message": "Student deleted"})
-			return
-		}
-	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "Student not found"})
 
 }
