@@ -1,6 +1,10 @@
 package main
 
 import (
+	"os"
+
+	"log"
+
 	"github.com/ZHosking/SREBootcamp/web-service-gin/handlers"
 	"github.com/ZHosking/SREBootcamp/web-service-gin/models"
 	"github.com/gin-gonic/gin"
@@ -10,7 +14,14 @@ func main() {
 
 	router := gin.Default()
 
-	db, err := models.InitDB("students.db")
+	dbPath := os.Getenv("STUDENT_DB")
+
+	if dbPath == "" {
+		dbPath = "students.db"
+		log.Printf("No STUDENT_DB set, falling back to default: %s", dbPath)
+	}
+
+	db, err := models.InitDB(dbPath)
 	if err != nil {
 		panic(err)
 	}
