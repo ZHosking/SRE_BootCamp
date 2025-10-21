@@ -34,20 +34,21 @@ func main() {
 	defer db.Close()
 
 	// routes
-	router.GET("/students", handlers.GetStudentsHandler(db))
-	router.GET("/students/:id", handlers.GetStudentByIDHandler(db))
-	router.POST("/students", handlers.AddStudentHandler(db))
-	router.PATCH("/students/:id", handlers.UpdateStudentHandler(db))
-	router.DELETE("/students/:id", handlers.DeleteStudentHandler(db))
-
-	//healthcheck call
-	router.GET("/healthcheck", func(c *gin.Context) {
-		if err := db.Ping(); err != nil {
-			c.JSON(503, gin.H{"status": "unhealthy"})
-			return
-		}
-		c.JSON(200, gin.H{"status": "healthy"})
-	})
+	api := router.Group("/api/v1")
+	{
+		api.GET("/students", handlers.GetStudentsHandler(db))
+		api.GET("/students/:id", handlers.GetStudentByIDHandler(db))
+		api.POST("/students", handlers.AddStudentHandler(db))
+		api.PATCH("/students/:id", handlers.UpdateStudentHandler(db))
+		api.DELETE("/students/:id", handlers.DeleteStudentHandler(db))
+		api.GET("/healthcheck", func(c *gin.Context) {
+			if err := db.Ping(); err != nil {
+				c.JSON(503, gin.H{"status": "unhealthy"})
+				return
+			}
+			c.JSON(200, gin.H{"status": "healthy"})
+		})
+	}
 
 	router.Run(":8080")
 
