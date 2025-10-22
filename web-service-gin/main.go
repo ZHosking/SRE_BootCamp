@@ -7,18 +7,25 @@ import (
 
 	"github.com/ZHosking/SREBootcamp/web-service-gin/handlers"
 	"github.com/ZHosking/SREBootcamp/web-service-gin/models"
+	"github.com/ZHosking/SREBootcamp/web-service-gin/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
 
 func main() {
 
+	utils.Init()
+	utils.InfoLogger.Println("Starting web service...")
+
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("No .env file found, using system env variables")
+		utils.WarnLogger.Printf("No .env file found, using system env variables")
 	}
 
 	router := gin.Default()
+
+	router.Use(gin.Logger())
+	router.Use(gin.Recovery())
 
 	dbPath := os.Getenv("STUDENT_DB")
 
