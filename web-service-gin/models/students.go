@@ -13,29 +13,32 @@ type Student struct {
 	Age  int    `json:"age"`
 }
 
-// InitDB opens/creates the database and sets up the table
-func InitDB(filepath string) (*sql.DB, error) {
+// ConnectDB opens the SQLite database and returns the connection
+func ConnectDB(filepath string) (*sql.DB, error) {
 	db, err := sql.Open("sqlite", filepath)
 	if err != nil {
 		return nil, err
 	}
+	return db, nil
+}
 
-	// Create table if not exists
-	createTableQuery := `
-    CREATE TABLE IF NOT EXISTS students (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        age INTEGER NOT NULL
-    );`
+// Migrate creates the students table if it doesn't exist
+func Migrate(db *sql.DB) error {
+	query := `
+	CREATE TABLE IF NOT EXISTS students (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT NOT NULL,
+		age INTEGER NOT NULL
+	);`
 
-	_, err = db.Exec(createTableQuery)
+	_, err := db.Exec(query)
 	if err != nil {
-		return nil, err
+		log.Printf("[ERROR] Failed to run migration: %v", err)
+		return err
 	}
 
-	log.Println("Database initialised")
-
-	return db, nil
+	log.Println("[INFO] Database migration completed successfully")
+	return nil
 }
 
 func GetAllStudents(db *sql.DB) ([]Student, error) {

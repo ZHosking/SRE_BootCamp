@@ -34,11 +34,15 @@ func main() {
 		log.Printf("No STUDENT_DB set, falling back to default: %s", dbPath)
 	}
 
-	db, err := models.InitDB(dbPath)
+	db, err := models.ConnectDB(dbPath)
 	if err != nil {
-		panic(err)
+		utils.ErrorLogger.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer db.Close()
+
+	if err := models.Migrate(db); err != nil {
+		utils.ErrorLogger.Fatalf("Migration failed: %v", err)
+	}
 
 	// routes
 	api := router.Group("/api/v1")

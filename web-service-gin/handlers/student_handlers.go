@@ -18,6 +18,11 @@ func GetStudentsHandler(db *sql.DB) gin.HandlerFunc {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
+
+		if students == nil {
+			students = []models.Student{}
+		}
+
 		utils.InfoLogger.Printf("Fetched %d students", len(students))
 		c.JSON(http.StatusOK, students)
 	}
