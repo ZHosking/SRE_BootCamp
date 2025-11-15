@@ -85,7 +85,7 @@ This allows for future improvements without breaking existing clients
 
 ---
 
-## Running Test
+## Running Tests
 
 Unit test are included for all handlers using an in-memory SQLite database
 ```powershell
