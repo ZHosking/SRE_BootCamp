@@ -1,22 +1,20 @@
-FROM golang:1.23-alpine AS builder
+FROM golang:latest AS builder
 
 WORKDIR /app
-
-RUN apk add --no-cache git
 
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
-RUN go build -o server .
+RUN CGO_ENABLED=0 GOOS=linux go build -o student-api .
 
 FROM alpine:latest
 
 WORKDIR /app
 
-COPY --from=builder /app/server .
+COPY --from=builder /app/student-api .
 
 EXPOSE 8080
 
-CMD ["./server"]
+CMD ["./student-api"]
